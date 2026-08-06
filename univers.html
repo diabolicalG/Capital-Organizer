@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KSh Student Budget Companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#12161c;
+        --panel:#1a2029;
+        --panel-raised:#1f2631;
+        --line: rgba(255,255,255,0.08);
+        --line-strong: rgba(255,255,255,0.16);
+        --ink:#f3f1ea;
+        --ink-dim:#9aa3af;
+        --ink-faint:#5f6771;
+        --teal:#28c38f;
+        --teal-dim: rgba(40,195,143,0.14);
+        --coral:#ff7a63;
+        --coral-dim: rgba(255,122,99,0.14);
+        --amber:#f0b84b;
+        --radius:14px;
+      }
+      *{box-sizing:border-box;}
+      html,body{margin:0;padding:0;}
+      body{
+        background:
+          radial-gradient(1100px 480px at 12% -8%, rgba(40,195,143,0.10), transparent 60%),
+          radial-gradient(900px 420px at 100% 0%, rgba(255,122,99,0.08), transparent 55%),
+          var(--bg);
+        color:var(--ink);
+        font-family:'Inter',sans-serif;
+        line-height:1.5;
+        min-height:100vh;
+      }
+      h1,h2,h3{font-family:'Space Grotesk',sans-serif; margin:0; font-weight:700;}
+      .mono{font-family:'IBM Plex Mono', monospace;}
+      .shell{max-width:1080px; margin:0 auto; padding:2.5rem 1.5rem 4rem;}
+
+      .hero{
+        display:grid; grid-template-columns:1.3fr 1fr; gap:1.5rem;
+        margin-bottom:2rem;
+      }
+      .eyebrow{
+        text-transform:uppercase; letter-spacing:0.14em; font-size:12px;
+        color:var(--teal); font-weight:600; margin:0 0 0.75rem;
+      }
+      .hero h1{font-size:clamp(28px,4vw,38px); line-height:1.15; margin-bottom:0.75rem;}
+      .subtext{color:var(--ink-dim); font-size:15px; max-width:44ch; margin:0;}
+      .hero-card{
+        background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+        padding:1.5rem; position:relative; overflow:hidden;
+      }
+      .hero-card::before{
+        content:""; position:absolute; inset:0;
+        background-image: repeating-linear-gradient(90deg, transparent 0 8px, rgba(255,255,255,0.03) 8px 9px);
+        pointer-events:none;
+      }
+      .hero-card h3{font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); font-weight:600; margin-bottom:0.6rem;}
+      .hero-balance{font-family:'IBM Plex Mono',monospace; font-size:34px; font-weight:600; color:var(--teal);}
+      #hero-status{color:var(--ink-dim); font-size:13px; margin:0.6rem 0 0;}
+
+      .grid{display:grid; gap:1rem;}
+      .metrics{grid-template-columns:repeat(4,1fr); margin-bottom:1.5rem;}
+      .card{
+        background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:1.25rem 1.4rem;
+      }
+      .metric-card h2{font-family:'IBM Plex Mono',monospace; font-size:22px; margin-top:0.4rem;}
+      .metric-label{margin:0; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); font-weight:600;}
+      #spent{color:var(--coral);}
+      #income{color:var(--teal);}
+
+      .layout{grid-template-columns:1fr 1fr; margin-bottom:1.5rem;}
+      .section-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;}
+      .pill{
+        font-size:11px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;
+        background:var(--teal-dim); color:var(--teal); padding:4px 10px; border-radius:999px; border:1px solid rgba(40,195,143,0.3);
+      }
+
+      form{display:flex; flex-direction:column; gap:0.85rem;}
+      label{font-size:13px; color:var(--ink-dim); display:flex; flex-direction:column; gap:0.4rem;}
+      input, select{
+        background:var(--panel-raised); border:1px solid var(--line-strong); border-radius:8px;
+        color:var(--ink); padding:0.6rem 0.7rem; font-size:14px; font-family:'Inter',sans-serif;
+      }
+      input:focus, select:focus{outline:none; border-color:var(--teal);}
+      button{
+        cursor:pointer; border-radius:8px; border:1px solid var(--line-strong);
+        background:var(--teal); color:#0a1a14; font-weight:700; padding:0.65rem 1rem; font-size:14px;
+        font-family:'Inter',sans-serif; transition:transform 0.1s ease, filter 0.15s ease;
+      }
+      button:hover{filter:brightness(1.08);}
+      button:active{transform:scale(0.98);}
+      button.secondary{
+        background:transparent; color:var(--ink-dim); border:1px solid var(--line-strong); font-weight:600;
+      }
+      button.secondary:hover{color:var(--coral); border-color:var(--coral);}
+      button.ghost-danger{
+        background:transparent; border:1px solid var(--line-strong); color:var(--coral);
+        padding:0.3rem 0.6rem; font-size:12px; font-weight:600;
+      }
+      .message{min-height:1.1em; font-size:13px; margin:0.4rem 0 0; color:var(--coral);}
+      .message.ok{color:var(--teal);}
+
+      .progress-wrap{
+        height:10px; border-radius:999px; background:var(--panel-raised); overflow:hidden; margin:1rem 0 0.5rem;
+        border:1px solid var(--line);
+      }
+      .progress-bar{height:100%; width:0%; background:linear-gradient(90deg,var(--teal),#5fe0b4); transition:width 0.3s ease;}
+      .goal-summary{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-dim); margin:0 0 1rem;}
+      #allocate-btn{margin-top:0.6rem;}
+
+      .history-card .section-head{flex-wrap:wrap; gap:0.75rem;}
+      .filters{display:flex; gap:0.6rem; flex-wrap:wrap;}
+      .filters input, .filters select{padding:0.5rem 0.7rem; font-size:13px;}
+      .filters input{min-width:200px;}
+
+      .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px;}
+      table{width:100%; border-collapse:collapse; font-size:13.5px;}
+      thead th{
+        text-align:left; padding:0.65rem 0.8rem; font-size:11px; text-transform:uppercase;
+        letter-spacing:0.06em; color:var(--ink-faint); border-bottom:1px solid var(--line); font-weight:600;
+      }
+      tbody td{padding:0.7rem 0.8rem; border-bottom:1px dashed var(--line); color:var(--ink);}
+      tbody tr:last-child td{border-bottom:none;}
+      tbody tr:hover{background:rgba(255,255,255,0.02);}
+      .amt{font-family:'IBM Plex Mono',monospace; font-weight:600;}
+      .amt.pos{color:var(--teal);}
+      .amt.neg{color:var(--coral);}
+      .tag{
+        font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600;
+        background:var(--panel-raised); color:var(--ink-dim); border:1px solid var(--line);
+      }
+      .tag.Income{background:var(--teal-dim); color:var(--teal); border-color:rgba(40,195,143,0.3);}
+      .tag.Expense{background:var(--coral-dim); color:var(--coral); border-color:rgba(255,122,99,0.3);}
+      .empty-row td{text-align:center; color:var(--ink-faint); padding:2rem 0.8rem; font-style:italic;}
+      .clear-wrap{display:flex; justify-content:flex-end; margin-top:1rem;}
+
+      .breakdown-card{margin-bottom:0;}
+      .breakdown-bars{display:flex; flex-direction:column; gap:0.75rem;}
+      .breakdown-row{display:grid; grid-template-columns:150px 1fr 90px; align-items:center; gap:0.75rem; font-size:13px;}
+      .breakdown-name{color:var(--ink-dim);}
+      .breakdown-track{height:8px; background:var(--panel-raised); border-radius:999px; overflow:hidden; border:1px solid var(--line);}
+      .breakdown-fill{height:100%; background:linear-gradient(90deg,var(--coral),var(--amber));}
+      .breakdown-amt{font-family:'IBM Plex Mono',monospace; text-align:right; color:var(--ink);}
+      .breakdown-empty{color:var(--ink-faint); font-style:italic; font-size:13px;}
+
+      @media (max-width:820px){
+        .hero{grid-template-columns:1fr;}
+        .metrics{grid-template-columns:repeat(2,1fr);}
+        .layout{grid-template-columns:1fr;}
+        .breakdown-row{grid-template-columns:100px 1fr 70px;}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Responsive student finance website</p>
+          <h1>Track your semester budget with clarity.</h1>
+          <p class="subtext">
+            Manage personal funds, expenses, savings goals, and category spending in Kenyan Shillings with a calm, modern dashboard.
+          </p>
+        </div>
+        <div class="hero-card">
+          <h3>Today's snapshot</h3>
+          <div id="hero-balance" class="hero-balance">KSh 0</div>
+          <p id="hero-status">Everything is set. Start logging your income and expenses.</p>
+        </div>
+      </header>
+
+      <section class="grid metrics" aria-label="Budget overview">
+        <article class="card metric-card">
+          <p class="metric-label">Total balance</p>
+          <h2 id="balance">KSh 0</h2>
+        </article>
+        <article class="card metric-card">
+          <p class="metric-label">Total income</p>
+          <h2 id="income">KSh 0</h2>
+        </article>
+        <article class="card metric-card">
+          <p class="metric-label">Total spent</p>
+          <h2 id="spent">KSh 0</h2>
+        </article>
+        <article class="card metric-card">
+          <p class="metric-label">Savings progress</p>
+          <h2 id="savings">0%</h2>
+        </article>
+      </section>
+
+      <main class="grid layout">
+        <section class="card">
+          <div class="section-head">
+            <h3>Log a transaction</h3>
+            <span class="pill">KSh only</span>
+          </div>
+          <form id="transaction-form">
+            <label>
+              Title
+              <input id="title" name="title" type="text" placeholder="Hostel rent" required />
+            </label>
+            <label>
+              Amount (KSh)
+              <input id="amount" name="amount" type="number" min="1" step="1" placeholder="5000" required />
+            </label>
+            <label>
+              Type
+              <select id="type" name="type" required>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+              </select>
+            </label>
+            <label>
+              Category
+              <select id="category" name="category" required>
+                <option value="Food/Mess">Food/Mess</option>
+                <option value="Rent/Hostel">Rent/Hostel</option>
+                <option value="Textbooks/Stationery">Textbooks/Stationery</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Transport/Matatu">Transport/Matatu</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <button type="submit">Save transaction</button>
+          </form>
+          <p id="form-message" class="message" aria-live="polite"></p>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h3>Savings goal</h3>
+            <span class="pill">Goal tracker</span>
+          </div>
+          <form id="goal-form">
+            <label>
+              Goal name
+              <input id="goal-name" name="goal-name" type="text" value="Laptop" required />
+            </label>
+            <label>
+              Target amount (KSh)
+              <input id="goal-target" name="goal-target" type="number" min="1000" step="100" value="50000" required />
+            </label>
+            <label>
+              Target date
+              <input id="goal-date" name="goal-date" type="date" required />
+            </label>
+            <button type="submit">Save goal</button>
+          </form>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <p id="goal-summary" class="goal-summary">KSh 0 saved of KSh 50,000</p>
+          <label>
+            Allocate to savings (KSh)
+            <input id="allocation" type="number" min="1" step="100" value="1000" />
+          </label>
+          <button id="allocate-btn" type="button">Add allocation</button>
+        </section>
+      </main>
+
+      <section class="card history-card">
+        <div class="section-head">
+          <h3>Transaction history</h3>
+          <div class="filters">
+            <input id="search" type="search" placeholder="Search by title or category" />
+            <select id="history-filter">
+              <option value="All">All categories</option>
+              <option value="Food/Mess">Food/Mess</option>
+              <option value="Rent/Hostel">Rent/Hostel</option>
+              <option value="Textbooks/Stationery">Textbooks/Stationery</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Transport/Matatu">Transport/Matatu</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="transaction-table"></tbody>
+          </table>
+        </div>
+        <div class="clear-wrap">
+          <button id="clear-btn" class="secondary" type="button">Clear all</button>
+        </div>
+      </section>
+
+      <section class="card breakdown-card">
+        <div class="section-head">
+          <h3>Spending breakdown</h3>
+          <span class="pill">By category</span>
+        </div>
+        <div id="breakdown-bars" class="breakdown-bars"></div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        var state = {
+          transactions: [],
+          nextId: 1,
+          goal: { name: "Laptop", target: 50000, date: "", saved: 0 }
+        };
+
+        function ksh(n) {
+          var rounded = Math.round(Number(n) || 0);
+          return "KSh " + rounded.toLocaleString("en-KE");
+        }
+
+        function todayStr() {
+          return new Date().toISOString().slice(0, 10);
+        }
+
+        var els = {
+          heroBalance: document.getElementById("hero-balance"),
+          heroStatus: document.getElementById("hero-status"),
+          balance: document.getElementById("balance"),
+          income: document.getElementById("income"),
+          spent: document.getElementById("spent"),
+          savings: document.getElementById("savings"),
+          form: document.getElementById("transaction-form"),
+          formMessage: document.getElementById("form-message"),
+          title: document.getElementById("title"),
+          amount: document.getElementById("amount"),
+          type: document.getElementById("type"),
+          category: document.getElementById("category"),
+          table: document.getElementById("transaction-table"),
+          search: document.getElementById("search"),
+          historyFilter: document.getElementById("history-filter"),
+          clearBtn: document.getElementById("clear-btn"),
+          breakdown: document.getElementById("breakdown-bars"),
+          goalForm: document.getElementById("goal-form"),
+          goalName: document.getElementById("goal-name"),
+          goalTarget: document.getElementById("goal-target"),
+          goalDate: document.getElementById("goal-date"),
+          goalSummary: document.getElementById("goal-summary"),
+          progressBar: document.getElementById("progress-bar"),
+          allocation: document.getElementById("allocation"),
+          allocateBtn: document.getElementById("allocate-btn")
+        };
+
+        function totals() {
+          var income = 0, expense = 0;
+          state.transactions.forEach(function (t) {
+            if (t.type === "Income") income += t.amount;
+            else expense += t.amount;
+          });
+          return { income: income, expense: expense, balance: income - expense };
+        }
+
+        function renderMetrics() {
+          var t = totals();
+          els.balance.textContent = ksh(t.balance);
+          els.heroBalance.textContent = ksh(t.balance);
+          els.income.textContent = ksh(t.income);
+          els.spent.textContent = ksh(t.expense);
+
+          var pct = state.goal.target > 0 ? Math.min(100, Math.round((state.goal.saved / state.goal.target) * 100)) : 0;
+          els.savings.textContent = pct + "%";
+
+          if (state.transactions.length === 0) {
+            els.heroStatus.textContent = "Everything is set. Start logging your income and expenses.";
+          } else if (t.balance < 0) {
+            els.heroStatus.textContent = "You're spending more than you've logged as income. Consider trimming a category below.";
+          } else if (t.expense > t.income * 0.8 && t.income > 0) {
+            els.heroStatus.textContent = "You're close to spending all your income this period. Keep an eye on discretionary categories.";
+          } else {
+            els.heroStatus.textContent = "Looking steady. Balance and savings are on track.";
+          }
+        }
+
+        function matchesFilters(t) {
+          var q = els.search.value.trim().toLowerCase();
+          var cat = els.historyFilter.value;
+          var matchesSearch = !q || t.title.toLowerCase().indexOf(q) !== -1 || t.category.toLowerCase().indexOf(q) !== -1;
+          var matchesCat = cat === "All" || t.category === cat;
+          return matchesSearch && matchesCat;
+        }
+
+        function renderTable() {
+          var rows = state.transactions.filter(matchesFilters).sort(function (a, b) { return b.id - a.id; });
+          els.table.innerHTML = "";
+
+          if (rows.length === 0) {
+            var tr = document.createElement("tr");
+            tr.className = "empty-row";
+            tr.innerHTML = '<td colspan="6">No transactions match yet. Log one above to get started.</td>';
+            els.table.appendChild(tr);
+            return;
+          }
+
+          rows.forEach(function (t) {
+            var tr = document.createElement("tr");
+            var sign = t.type === "Income" ? "+" : "-";
+            var amtClass = t.type === "Income" ? "pos" : "neg";
+            tr.innerHTML =
+              "<td>" + escapeHtml(t.title) + "</td>" +
+              '<td class="amt ' + amtClass + '">' + sign + ksh(t.amount).replace("KSh ", "KSh ") + "</td>" +
+              '<td><span class="tag ' + t.type + '">' + t.type + "</span></td>" +
+              "<td>" + escapeHtml(t.category) + "</td>" +
+              "<td>" + t.date + "</td>" +
+              "<td></td>";
+            var actionTd = tr.lastElementChild;
+            var delBtn = document.createElement("button");
+            delBtn.className = "ghost-danger";
+            delBtn.type = "button";
+            delBtn.textContent = "Delete";
+            delBtn.addEventListener("click", function () {
+              state.transactions = state.transactions.filter(function (x) { return x.id !== t.id; });
+              renderAll();
+            });
+            actionTd.appendChild(delBtn);
+            els.table.appendChild(tr);
+          });
+        }
+
+        function escapeHtml(str) {
+          var div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
+
+        function renderBreakdown() {
+          var byCategory = {};
+          state.transactions.forEach(function (t) {
+            if (t.type !== "Expense") return;
+            byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
+          });
+
+          var entries = Object.keys(byCategory).map(function (k) { return { category: k, amount: byCategory[k] }; });
+          entries.sort(function (a, b) { return b.amount - a.amount; });
+
+          els.breakdown.innerHTML = "";
+
+          if (entries.length === 0) {
+            var p = document.createElement("p");
+            p.className = "breakdown-empty";
+            p.textContent = "No expenses logged yet. Categories will appear here once you add some.";
+            els.breakdown.appendChild(p);
+            return;
+          }
+
+          var max = entries[0].amount;
+          entries.forEach(function (e) {
+            var row = document.createElement("div");
+            row.className = "breakdown-row";
+            var pct = max > 0 ? (e.amount / max) * 100 : 0;
+            row.innerHTML =
+              '<span class="breakdown-name">' + escapeHtml(e.category) + "</span>" +
+              '<span class="breakdown-track"><span class="breakdown-fill" style="width:' + pct + '%"></span></span>' +
+              '<span class="breakdown-amt">' + ksh(e.amount) + "</span>";
+            els.breakdown.appendChild(row);
+          });
+        }
+
+        function renderGoal() {
+          var pct = state.goal.target > 0 ? Math.min(100, (state.goal.saved / state.goal.target) * 100) : 0;
+          els.progressBar.style.width = pct + "%";
+          els.goalSummary.textContent = ksh(state.goal.saved) + " saved of " + ksh(state.goal.target) + " for " + state.goal.name;
+        }
+
+        function renderAll() {
+          renderMetrics();
+          renderTable();
+          renderBreakdown();
+          renderGoal();
+        }
+
+        function showMessage(text, ok) {
+          els.formMessage.textContent = text;
+          els.formMessage.className = "message" + (ok ? " ok" : "");
+        }
+
+        els.form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var title = els.title.value.trim();
+          var amount = Number(els.amount.value);
+
+          if (!title) {
+            showMessage("Give the transaction a title.", false);
+            return;
+          }
+          if (!amount || amount <= 0) {
+            showMessage("Enter an amount greater than zero.", false);
+            return;
+          }
+
+          state.transactions.push({
+            id: state.nextId++,
+            title: title,
+            amount: Math.round(amount),
+            type: els.type.value,
+            category: els.category.value,
+            date: todayStr()
+          });
+
+          showMessage("Transaction saved.", true);
+          els.form.reset();
+          els.title.focus();
+          renderAll();
+        });
+
+        els.search.addEventListener("input", renderTable);
+        els.historyFilter.addEventListener("change", renderTable);
+
+        els.clearBtn.addEventListener("click", function () {
+          if (state.transactions.length === 0) return;
+          state.transactions = [];
+          renderAll();
+        });
+
+        els.goalForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var target = Number(els.goalTarget.value);
+          if (!target || target <= 0) return;
+          state.goal.name = els.goalName.value.trim() || "Savings goal";
+          state.goal.target = Math.round(target);
+          state.goal.date = els.goalDate.value;
+          renderAll();
+        });
+
+        els.allocateBtn.addEventListener("click", function () {
+          var amt = Number(els.allocation.value);
+          if (!amt || amt <= 0) return;
+          state.goal.saved += Math.round(amt);
+          renderAll();
+        });
+
+        renderAll();
+      })();
+    </script>
+  </body>
+</html>
